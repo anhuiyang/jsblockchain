@@ -7,22 +7,31 @@ class Block{
         this.data = data;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
+        this.nonce = 0
     }
     calculateHash(){
-        return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
+        return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+    }
+    mineBlock(difficulty){
+        while(this.hash.substring(0, difficulty) !== Array(difficulty+1).join('0')){
+            this.nonce++
+            this.hash = this.calculateHash()
+        }
+        console.log('Block mined: ', this.hash)
     }
 }
 
 class BlockChain{
     constructor(){
         this.chain = [this.createGenesisBlock()]
+        this.difficulty = 4
     }
     createGenesisBlock(){
         return new Block(0, "01/01/2019", "Genesis Block", "");
     }
     addBlock(newBlock){
         newBlock.previousHash = this.getLatestBlock().hash;
-        newBlock.hash = newBlock.calculateHash();
+        newBlock.mineBlock(this.difficulty);
         this.chain.push(newBlock);
     }
     getLatestBlock(){
@@ -46,7 +55,9 @@ class BlockChain{
 }
 
 let anCoin = new BlockChain()
+console.log('mining block1...')
 anCoin.addBlock(new Block(1, '01/06/2019', {amount: 4}, ))
+console.log('mining block2...')
 anCoin.addBlock(new Block(2, '01/06/2019', {amount: 12}, ))
 
 // original block chain
@@ -54,7 +65,13 @@ anCoin.addBlock(new Block(2, '01/06/2019', {amount: 12}, ))
 // console.log('Is blockchain valid?', anCoin.isChainValid())
 
 // tamper block1 with data
-anCoin.chain[1].data.amount = 10
-anCoin.chain[1].hash = anCoin.chain[1].calculateHash()
-console.log(JSON.stringify(anCoin, null, 4))
-console.log('Is blockchain valid?', anCoin.isChainValid())
+// anCoin.chain[1].data.amount = 10
+// anCoin.chain[1].hash = anCoin.chain[1].calculateHash()
+// console.log(JSON.stringify(anCoin, null, 4))
+// console.log('Is blockchain valid?', anCoin.isChainValid())
+
+// untamper block1
+// anCoin.chain[1].data.amount = 4
+// anCoin.chain[1].hash = anCoin.chain[1].calculateHash()
+// console.log(JSON.stringify(anCoin, null, 4))
+// console.log('Is blockchain valid?', anCoin.isChainValid())
